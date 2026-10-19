@@ -31,13 +31,37 @@ int choose(std::vector<int> group, const int N) {
     return chosen_indices[random_index];
 }
 
+void fragment(std::vector<int> group, int index) {
+    if (group[index] > 1) {
+        int s_i = group[index];
+        group[index] = 1;
+        for (int k = 0; k < s_i - 1; ++k) {
+            group.push_back(1);
+        }
+    }
+}
+
+void combine(std::vector<int>, int index_i, int index_j) {
+    group[index_i] += group[index_j];
+    group[index_j] = group.back();
+    group.pop_back();
+}
+
 int main(int argc, char** argv) {
     int N = 100;
+    double v = 0.001;
+    int T = N //Change T, choose according to what?
     // Generate the guerrilla vector of size N and values 1
     std::vector<int> guerrilla(N, 1);
 
     int chosen_index = choose(guerrilla, N);
     std::cout << "Chosen index: " << chosen_index << std::endl;
+
+    for (int t = 0; t < T, ++t) {
+        if (guerrilla.size() <= 1) break;
+
+        int index_i = choose(guerrila, N);
+
 
     return 0;
 }
