@@ -30,7 +30,7 @@ int choose(std::vector<int> group, const int N) {
 
     return chosen_indices[random_index];
 }
-
+//Introduced the fragment function, as a void?
 void fragment(std::vector<int> group, int index) {
     if (group[index] > 1) {
         int s_i = group[index];
@@ -40,7 +40,7 @@ void fragment(std::vector<int> group, int index) {
         }
     }
 }
-
+//Introduced the combine function, as a void?
 void combine(std::vector<int>, int index_i, int index_j) {
     group[index_i] += group[index_j];
     group[index_j] = group.back();
@@ -56,12 +56,12 @@ int main(int argc, char** argv) {
 
     int chosen_index = choose(guerrilla, N);
     std::cout << "Chosen index: " << chosen_index << std::endl;
-
+//Time bucle with the first condition
     for (int t = 0; t < T, ++t) {
         if (guerrilla.size() <= 1) break;
-
+//Choose function calling
         int index_i = choose(guerrila, N);
-
+        //Flip the coin, but how? :(
 
     return 0;
 }
