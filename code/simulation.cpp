@@ -30,6 +30,22 @@ int choose(std::vector<int> group, const int N) {
 
     return chosen_indices[random_index];
 }
+
+// INtroduced the decide function as a bool
+bool decide(double v) {
+    // Generador de números aleatorios estático para mantener el estado entre llamadas 
+    static std::random_device rd; //Se crea la semilla y el generador estaticos para que solo se creen una vez en memoria
+    static std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dist(0.0, 1.0); //GEneración de numeros aleatorios ente 0.0 y 1.0
+
+    // Retorna true si el número aleatorio es menor que la probabilidad v
+    return dist(gen) < v;
+}
+
+
+
+
+
 //Introduced the fragment function, as a void?
 void fragment(std::vector<int> group, int index) {
     if (group[index] > 1) {
@@ -45,6 +61,18 @@ void combine(std::vector<int>, int index_i, int index_j) {
     group[index_i] += group[index_j];
     group[index_j] = group.back();
     group.pop_back();
+}
+
+//INtroduce the countS function as a int
+
+int countS(const std::vector<int>& guerrilla, int s_buscado) { //Recibe el vector guerrilla por referencia cte para no duplicarlo en memoria y el S buscado
+    int contador = 0; // Cuenta cuantas veces esta el S buscado
+    for (int s_i : guerrilla) { 
+        if (s_i == s_buscado) {
+            contador++;
+        }
+    }
+    return contador; //REtorna el total acumulador un entero
 }
 
 int main(int argc, char** argv) {
