@@ -141,12 +141,12 @@ double count_alpha(std::unordered_map<int, int>& data) {
 }
 
 void print_to_text(const std::unordered_map<int,int>& data, const std::string& filename) {
-    //Open (or create) the file with the given name "guerrilla"    
-    std::ofstream file(guerrilla);
+    //Open (or create) the file 
+    std::ofstream file(filename);
     
     //Verify if the file opened correctly
     if (!file.is_open()) {
-        std::cerr << "Error when opening the file " << guerrilla << std::endl;
+        std::cerr << "Error when opening the file " << filename << std::endl;
         return;
     }
 
@@ -157,7 +157,7 @@ void print_to_text(const std::unordered_map<int,int>& data, const std::string& f
     
     //Close the file
     file.close();
-    std::cout << "Data saved successfully at: " << guerrillas << std::endl;
+    std::cout << "Data saved successfully at: " << filename << std::endl;
 }
 
 
