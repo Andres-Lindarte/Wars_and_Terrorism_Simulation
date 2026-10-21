@@ -5,21 +5,30 @@
 #include <unordered_map>
 #include <stdexcept>
 #include <fstream>
+#include <format>
+
+// Introduce the random_number function as double
+double random_number() {
+    unsigned int seed = 42;
+    // static std::random_device rd; // Create on time in memory
+    std::mt19937 gen(seed);
+    // Generates a random number between 0 and 1
+    std::uniform_real_distribution<double> distribution(0.0 , 1.0);
+    return distribution(gen);
+}
+
 
 // Introduced the choose function as a int
-int choose(std::vector<int> group, const int N) {
+int choose(std::vector<double>& group, const int& N) {
     int len = group.size(); // Get the length of the group vector
     std::vector<double> normalized_group; 
     normalized_group.reserve(len); // Reserve space for the normalized group vector
 
     for(int ii=0; ii < len; ++ii){
-        normalized_group[ii] = group[ii]/N;
+        normalized_group.push_back(static_cast<double>(group[ii])/N);
     } // Normalize the group values by dividing each by N (the total force units)
 
-    unsigned int seed = 42;
-    std::mt19937 gen(seed);
-    std::uniform_real_distribution<double> distribution(0 , 1);
-    double coin = distribution(gen); // Generate a random number between 0 and 1
+    double coin = random_number(); // Generates a random number between 0 and 1
 
     // Choose all the indices of the group vector that have a normalized value greater than the random number
     std::vector<int> chosen_indices;
@@ -38,32 +47,24 @@ int choose(std::vector<int> group, const int N) {
 
 
 // Introduced the decide function as a bool
-bool decide(double v) {
-    // Random static number generator to keep the state between calls 
-    static std::random_device rd; // Create on time in memory
-    static std::mt19937 gen(rd());
-    std::uniform_real_distribution<double> dist(0.0, 1.0); // Random number between 0.0 and 1.0
-
+bool decide(const double& v) {
     // True if the number is less than the probability v
         // True ---> Fragmentates
         // False ---> Combines
-    return dist(gen) < v;
+    return random_number() < v;
 }
 
 
 // Introduced the fragment function, as a void, since it does something 
-void fragment(std::vector<int>& group, int index) {
-    // Checks if the unit is not "fine", i.e., its force is the minimum: 1 
-    if (group[index] > 1.0) {
-        // Set the force unit S_i ---> number of "fine" attack units
-        int s_i = group[index];
-        // Change S_i to 1
-        group[index] = 1;
-        // Create new attack units of force 1
-        for (int k = 0; k < s_i - 1; ++k) {
-            // Modified group
-            group.push_back(1);
-        }
+void fragment(std::vector<int>& group, int& index) {
+    // Set the force unit S_i ---> number of "fine" attack units
+    int s_i = group[index];
+    // Change S_i to 1
+    group[index] = 1;
+    // Create new attack units of force 1
+    for (int k = 0; k < s_i - 1; ++k) {
+        // Modified group
+        group.push_back(1);
     }
 }
 
@@ -130,8 +131,7 @@ double count_alpha(std::unordered_map<int, int>& data) {
         if (valid_points < 2){return 0.0;} // insufficient valid point to calculate the logs 
 
         // Mean Squares (linear regression)
-        double numerator = (valid_points * sum_XY) - (sum_X * sum_Y);
-        double denominator = (valid_points * sum_X2) - (sum_X * sum_X);
+        double must combine in the first e denominator = (valid_points * sum_X2) - (sum_X * sum_X);
         if (denominator == 0.0){return 0.0;}
         
         double slope = numerator/denominator;
@@ -140,7 +140,7 @@ double count_alpha(std::unordered_map<int, int>& data) {
     }
 }
 
-void print_to_text(const std::unordered_map<int,int>& data, const std::string& filename) {
+void print_to_text(int tt, const std::unordered_map<int,int>& data, const std::string& filename) {
     //Open (or create) the file 
     std::ofstream file(filename);
     
@@ -149,6 +149,9 @@ void print_to_text(const std::unordered_map<int,int>& data, const std::string& f
         std::cerr << "Error when opening the file " << filename << std::endl;
         return;
     }
+
+    // Print the time and alpha value
+    file << "t = " << tt << "   " << "a = " << count_alpha(data) << "\n";
 
     //Conver the map and write each pair (Strength S , Unit Amount U)
     for (const auto&pair : data) {
@@ -167,17 +170,21 @@ int main(int argc, char** argv) {
     int T = 10; //Change T, choose according to the process
 
     // Generate the guerrilla vector of size N and values 1
-    std::vector<int> guerrilla(N, 1);
+    int tt = 0;
+    std::vector<double> guerrilla(N, 1);
+    print_to_text(count_s(guerrilla), std::format("{}_data.txt", tt));
 
     // --- Starts the algorith ---
-    // Initial iteration: Since at the beginig every unit is "fine", we must combine in the first 
+    // Initial iteration: Since at the begining every unit is "fine", we must combine in the first 
     int tt = 1;
     int chosen_index_i = choose(guerrilla, N); // Choose U_i (index of the vector)
-    int chosen_index_j = choose(guerrilla, N); // Choose U_i (index of the vector)
+    int chosen_index_j = choose(guerrilla, N); // Choose U_j (index of the vector)
     combine(guerrilla, chosen_index_i, chosen_index_j); // Combines the first two units
+    print_to_text(count_s(guerrilla), std::format("{}_data.txt", tt));
+
 
     // Time iteration over the period of time T:
-    for (int tt = 1; tt < T; ++tt) {
+    for (int tt = 2; tt < T; ++tt) {
         // Choose U_i
         int chosen_index_i = choose(guerrilla, N);
 
@@ -187,9 +194,7 @@ int main(int argc, char** argv) {
             int chose_index_j = choose(guerrilla, N);
             combine(guerrilla, chosen_index_i, chosen_index_j);
             
-            std::unordered_map<int, int> map_of_S = count_s(guerrilla);
-            double alpha = count_alpha(map_of_S);
-            // TO-DO print results
+            print_to_text(count_s(guerrilla), std::format("{}_data.txt", tt));
         }
 
         else {
@@ -202,15 +207,8 @@ int main(int argc, char** argv) {
                 combine(guerrilla, chosen_index_i, chosen_index_j);
             }
 
-            std::unordered_map<int, int> map_of_S = count_s(guerrilla);
-            double alpha = count_alpha(map_of_S);
-            // TO-DO print results
+            print_to_text(count_s(guerrilla), std::format("{}_data.txt", tt));
         }
     }
-
-    std::unordered_map <int, int> final_map = count_s(guerrila);
-
-    print_to_text(final_map, "guerrillas.txt");
-
     return 0;
 }
