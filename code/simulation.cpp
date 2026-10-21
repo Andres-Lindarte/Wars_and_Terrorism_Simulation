@@ -2,7 +2,10 @@
 #include <vector>
 #include <random>
 #include <cmath>
+#include <unordered_map>
+#include <stdexcept>
 
+// Introduced the choose function as a int
 int choose(std::vector<int> group, const int N) {
     int len = group.size(); // Get the length of the group vector
     std::vector<double> normalized_group; 
@@ -24,6 +27,7 @@ int choose(std::vector<int> group, const int N) {
             chosen_indices.push_back(ii);
         }
     }
+        // THIS PART COULD BE DELETED
     // Then choose one of the indices from the chosen_indices vector at random
     std::uniform_int_distribution<int> index_distribution(0, chosen_indices.size() - 1);
     int random_index = index_distribution(gen);
@@ -31,65 +35,157 @@ int choose(std::vector<int> group, const int N) {
     return chosen_indices[random_index];
 }
 
-// INtroduced the decide function as a bool
-bool decide(double v) {
-    // Generador de números aleatorios estático para mantener el estado entre llamadas 
-    static std::random_device rd; //Se crea la semilla y el generador estaticos para que solo se creen una vez en memoria
-    static std::mt19937 gen(rd());
-    std::uniform_real_distribution<double> dist(0.0, 1.0); //GEneración de numeros aleatorios ente 0.0 y 1.0
 
-    // Retorna true si el número aleatorio es menor que la probabilidad v
+// Introduced the decide function as a bool
+bool decide(double v) {
+    // Random static number generator to keep the state between calls 
+    static std::random_device rd; // Create on time in memory
+    static std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dist(0.0, 1.0); // Random number between 0.0 and 1.0
+
+    // True if the number is less than the probability v
+        // True ---> Fragmentates
+        // False ---> Combines
     return dist(gen) < v;
 }
 
 
-
-
-
-//Introduced the fragment function, as a void?
-void fragment(std::vector<int> group, int index) {
-    if (group[index] > 1) {
+// Introduced the fragment function, as a void, since it does something 
+void fragment(std::vector<int>& group, int index) {
+    // Checks if the unit is not "fine", i.e., its force is the minimum: 1 
+    if (group[index] > 1.0) {
+        // Set the force unit S_i ---> number of "fine" attack units
         int s_i = group[index];
+        // Change S_i to 1
         group[index] = 1;
+        // Create new attack units of force 1
         for (int k = 0; k < s_i - 1; ++k) {
+            // Modified group
             group.push_back(1);
         }
     }
 }
-//Introduced the combine function, as a void?
-void combine(std::vector<int>, int index_i, int index_j) {
+
+
+// Introduced the combine function, as a void
+void combine(std::vector<int>& group, int index_i, int index_j) {
+    // Sum the force units of the attack unit i and j
     group[index_i] += group[index_j];
+    // Moves the last force unit value to the index j
     group[index_j] = group.back();
-    group.pop_back();
+    // Eliminates the last attack unit 
+    group.pop_back(); // Modified group
 }
 
-//INtroduce the countS function as a int
 
-int countS(const std::vector<int>& guerrilla, int s_buscado) { //Recibe el vector guerrilla por referencia cte para no duplicarlo en memoria y el S buscado
-    int contador = 0; // Cuenta cuantas veces esta el S buscado
-    for (int s_i : guerrilla) { 
-        if (s_i == s_buscado) {
-            contador++;
-        }
+// Introduced the count_s function as a map 
+std::unordered_map<int, int> count_s(const std::vector<int>& group) {
+    // Initialices the map: S_k --- Number of units with S_k
+    std::unordered_map<int, int> frequencies;
+    // Loop of the S_k 
+    for (int num : group) {
+        frequencies[num]++; // magic
     }
-    return contador; //REtorna el total acumulador un entero
+    return frequencies;
 }
+
+
+// Introduced the count_alpha function as a double
+double count_alpha(std::unordered_map<int, int>& data) {
+    if (data.size() < 2){return 0.0;} // Insufficient number of points to calculate the line
+    else {
+        double accumulated = 0.0;
+
+        // Variables for the linear regression
+        double sum_X = 0.0;
+        double sum_Y = 0.0;
+        double sum_XY = 0.0;
+        double sum_X2 = 0.0;
+        int valid_points = 0;
+
+        // Sweep of the map (ascending order)
+        for (const auto& pair : data) {
+            // The key 
+            double S = pair.first;
+            // The value
+            double probability = pair.second;
+
+            // Sum the probability to the accomulated one
+            accumulated += probability;
+
+            if (S > 0.0 && accumulated > 0.0) {
+                // Calculates the logs
+                double ln_S = std::log(S);               // X
+                double ln_prob = std::log(accumulated);  // Y
+
+                // Summatories for the linear regression
+                sum_X += ln_S;
+                sum_Y += ln_prob;
+                sum_XY += (ln_S * ln_prob);
+                sum_X2 += (ln_S * ln_S);
+                valid_points++;
+            }
+        }
+        if (valid_points < 2){return 0.0;} // insufficient valid point to calculate the logs 
+
+        // Mean Squares (linear regression)
+        double numerator = (valid_points * sum_XY) - (sum_X * sum_Y);
+        double denominator = (valid_points * sum_X2) - (sum_X * sum_X);
+        if (denominator == 0.0){return 0.0;}
+        
+        double slope = numerator/denominator;
+        
+        return slope + 1.0;
+    }
+}
+
 
 int main(int argc, char** argv) {
-    int N = 100;
-    double v = 0.001;
-    int T = N //Change T, choose according to what?
+    int N = 100; // Total force units
+    double v = 0.001; // Fragmentation probability
+    int T = 10; //Change T, choose according to the process
+
     // Generate the guerrilla vector of size N and values 1
     std::vector<int> guerrilla(N, 1);
 
-    int chosen_index = choose(guerrilla, N);
-    std::cout << "Chosen index: " << chosen_index << std::endl;
-//Time bucle with the first condition
-    for (int t = 0; t < T, ++t) {
-        if (guerrilla.size() <= 1) break;
-//Choose function calling
-        int index_i = choose(guerrila, N);
-        //Flip the coin, but how? :(
+    // --- Starts the algorith ---
+    // Initial iteration: Since at the beginig every unit is "fine", we must combine in the first 
+    int tt = 1;
+    int chosen_index_i = choose(guerrilla, N); // Choose U_i (index of the vector)
+    int chosen_index_j = choose(guerrilla, N); // Choose U_i (index of the vector)
+    combine(guerrilla, chosen_index_i, chosen_index_j); // Combines the first two units
+
+    // Time iteration over the period of time T:
+    for (int tt = 1; tt < T; ++tt) {
+        // Choose U_i
+        int chosen_index_i = choose(guerrilla, N);
+
+        // Check if U_i is "fine", i.e., S_i = 1
+        if (guerrilla[chosen_index_i] == 1){
+            // The only option is to combine:
+            int chose_index_j = choose(guerrilla, N);
+            combine(guerrilla, chosen_index_i, chosen_index_j);
+            
+            std::unordered_map<int, int> map_of_S = count_s(guerrilla);
+            double alpha = count_alpha(map_of_S);
+            // TO-DO print results
+        }
+
+        else {
+            // Dinamic process: Fragmentation of combination
+            if (decide(v)){
+                fragment(guerrilla, chosen_index_i);
+            }
+            else {
+                int chose_index_j = choose(guerrilla, N);
+                combine(guerrilla, chosen_index_i, chosen_index_j);
+            }
+
+            std::unordered_map<int, int> map_of_S = count_s(guerrilla);
+            double alpha = count_alpha(map_of_S);
+            // TO-DO print results
+        }
+    }
 
     return 0;
 }
