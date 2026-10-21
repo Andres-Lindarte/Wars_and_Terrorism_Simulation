@@ -5,9 +5,43 @@
 #include <unordered_map>
 #include <stdexcept>
 #include <fstream>
+#include <string>
 #include <format>
 
-// Introduce the random_number function as double
+// Introduce the c_l_arguments function
+std::tuple<int, double> c_l_arguments(int argc, char **argv) {
+    try{
+        N = std::stoi(argv[1]);
+    } catch (const std::exception& e) {
+        std::cerr << "Error: Invalid 'Total force units' (N). Using default value.\n";
+    }
+    try{
+        v = std::stod(argv[1]);
+    } catch (const std::exception& e) {
+        std::cerr << "Error: Invalid 'Fragmentation probability' (v). Using default value.\n";
+    }
+    return {N, v}
+}
+
+
+// Introduce the loading function as a void
+void loading(const int T, double & t) {
+    double interval = T/10; // Progress in 10% blocks (could be changed)
+    static int pre_k = -1; // Save the last printed progress
+    int k = static_cast<int>(std::round(t / interval)); 
+
+    if (k > pre_k) { // Only prints if there is a change
+        pre_k = k;  
+
+        std::cout << "\r\t\t\t  [";  
+        for (int i = 0; i < k; i++) std::cout << "XX"; 
+        for (int i = k; i < 10; i++) std::cout << "--"; 
+        std::cout << "] " << k * 10 << "%" << std::flush; 
+    }
+}
+
+
+// Introduced the random_number function as double
 double random_number() {
     unsigned int seed = 42;
     // static std::random_device rd; // Create on time in memory
@@ -56,7 +90,7 @@ bool decide(const double& v) {
 
 
 // Introduced the fragment function, as a void, since it does something 
-void fragment(std::vector<int>& group, int& index) {
+void fragment(std::vector<double>& group, int& index) {
     // Set the force unit S_i ---> number of "fine" attack units
     int s_i = group[index];
     // Change S_i to 1
@@ -70,7 +104,7 @@ void fragment(std::vector<int>& group, int& index) {
 
 
 // Introduced the combine function, as a void
-void combine(std::vector<int>& group, int index_i, int index_j) {
+void combine(std::vector<double>& group, int index_i, int index_j) {
     // Sum the force units of the attack unit i and j
     group[index_i] += group[index_j];
     // Moves the last force unit value to the index j
@@ -140,6 +174,8 @@ double count_alpha(std::unordered_map<int, int>& data) {
     }
 }
 
+
+// Introduce the print_to_txt function as void
 void print_to_text(int tt, const std::unordered_map<int,int>& data, const std::string& filename) {
     //Open (or create) the file 
     std::ofstream file(filename);
@@ -165,9 +201,16 @@ void print_to_text(int tt, const std::unordered_map<int,int>& data, const std::s
 
 
 int main(int argc, char** argv) {
+
+    // Default values
     int N = 100; // Total force units
     double v = 0.001; // Fragmentation probability
     int T = 10; //Change T, choose according to the process
+
+    // Command Line Arguments
+    if (argc > 2){
+        auto [N, v] = c_l_arguments(argv)
+    }
 
     // Generate the guerrilla vector of size N and values 1
     int tt = 0;
@@ -194,6 +237,7 @@ int main(int argc, char** argv) {
             int chose_index_j = choose(guerrilla, N);
             combine(guerrilla, chosen_index_i, chosen_index_j);
             
+            loading(T, tt);
             print_to_text(count_s(guerrilla), std::format("{}_data.txt", tt));
         }
 
@@ -206,7 +250,8 @@ int main(int argc, char** argv) {
                 int chose_index_j = choose(guerrilla, N);
                 combine(guerrilla, chosen_index_i, chosen_index_j);
             }
-
+            
+            loading(T, tt);
             print_to_text(count_s(guerrilla), std::format("{}_data.txt", tt));
         }
     }
