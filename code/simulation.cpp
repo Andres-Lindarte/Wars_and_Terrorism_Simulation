@@ -4,6 +4,7 @@
 #include <cmath>
 #include <unordered_map>
 #include <stdexcept>
+#include <fstream>
 
 // Introduced the choose function as a int
 int choose(std::vector<int> group, const int N) {
@@ -139,6 +140,26 @@ double count_alpha(std::unordered_map<int, int>& data) {
     }
 }
 
+void print_to_text(const std::unordered_map<int,int>& data, const std::string& filename) {
+    //Open (or create) the file with the given name "guerrilla"    
+    std::ofstream file(guerrilla);
+    
+    //Verify if the file opened correctly
+    if (!file.is_open()) {
+        std::cerr << "Error when opening the file " << guerrilla << std::endl;
+        return;
+    }
+
+    //Conver the map and write each pair (Strength S , Unit Amount U)
+    for (const auto&pair : data) {
+        file << pair.first << "," << pair.second << "\n";
+    }
+    
+    //Close the file
+    file.close();
+    std::cout << "Data saved successfully at: " << guerrillas << std::endl;
+}
+
 
 int main(int argc, char** argv) {
     int N = 100; // Total force units
@@ -186,6 +207,10 @@ int main(int argc, char** argv) {
             // TO-DO print results
         }
     }
+
+    std::unordered_map <int, int> final_map = count_s(guerrila);
+
+    print_to_text(final_map, "guerrillas.txt");
 
     return 0;
 }
