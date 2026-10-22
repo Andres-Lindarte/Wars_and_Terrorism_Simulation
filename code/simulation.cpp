@@ -8,24 +8,8 @@
 #include <string>
 #include <format>
 
-// Introduce the c_l_arguments function
-std::tuple<int, double> c_l_arguments(int argc, char **argv) {
-    try{
-        N = std::stoi(argv[1]);
-    } catch (const std::exception& e) {
-        std::cerr << "Error: Invalid 'Total force units' (N). Using default value.\n";
-    }
-    try{
-        v = std::stod(argv[1]);
-    } catch (const std::exception& e) {
-        std::cerr << "Error: Invalid 'Fragmentation probability' (v). Using default value.\n";
-    }
-    return {N, v}
-}
-
-
 // Introduce the loading function as a void
-void loading(const int T, double & t) {
+void loading(const int T, int & t) {
     double interval = T/10; // Progress in 10% blocks (could be changed)
     static int pre_k = -1; // Save the last printed progress
     int k = static_cast<int>(std::round(t / interval)); 
@@ -73,6 +57,14 @@ int choose(std::vector<double>& group, const int& N) {
     }
         // THIS PART COULD BE DELETED
     // Then choose one of the indices from the chosen_indices vector at random
+    unsigned int seed = 42;
+    // static std::random_device rd; // Create on time in memory
+    std::mt19937 gen(seed);
+    // Validation if chosen_indices is empty
+    if (chosen_indices.empty()) {
+        std::uniform_int_distribution<int> fallback_distribution(0, len - 1);
+        return fallback_distribution(gen);
+    }
     std::uniform_int_distribution<int> index_distribution(0, chosen_indices.size() - 1);
     int random_index = index_distribution(gen);
 
@@ -115,19 +107,19 @@ void combine(std::vector<double>& group, int index_i, int index_j) {
 
 
 // Introduced the count_s function as a map 
-std::unordered_map<int, int> count_s(const std::vector<int>& group) {
+std::unordered_map<int, int> count_s(const std::vector<double>& group) {
     // Initialices the map: S_k --- Number of units with S_k
     std::unordered_map<int, int> frequencies;
     // Loop of the S_k 
-    for (int num : group) {
-        frequencies[num]++; // magic
+    for (double num : group) {
+        frequencies[static_cast<int>(num)]++; // magic
     }
     return frequencies;
 }
 
 
 // Introduced the count_alpha function as a double
-double count_alpha(std::unordered_map<int, int>& data) {
+double count_alpha(const std::unordered_map<int, int>& data) {
     if (data.size() < 2){return 0.0;} // Insufficient number of points to calculate the line
     else {
         double accumulated = 0.0;
@@ -165,10 +157,11 @@ double count_alpha(std::unordered_map<int, int>& data) {
         if (valid_points < 2){return 0.0;} // insufficient valid point to calculate the logs 
 
         // Mean Squares (linear regression)
-        double must combine in the first e denominator = (valid_points * sum_X2) - (sum_X * sum_X);
+        double NUMERATOR = (valid_points * sum_XY) - (sum_X * sum_Y);
+        double denominator = (valid_points * sum_X2) - (sum_X * sum_X);
         if (denominator == 0.0){return 0.0;}
         
-        double slope = numerator/denominator;
+        double slope = NUMERATOR/denominator;
         
         return slope + 1.0;
     }
@@ -176,7 +169,7 @@ double count_alpha(std::unordered_map<int, int>& data) {
 
 
 // Introduce the print_to_txt function as void
-void print_to_text(int tt, const std::unordered_map<int,int>& data, const std::string& filename) {
+void print_to_text(int tt,const std::unordered_map<int,int>& data, const std::string& filename) {
     //Open (or create) the file 
     std::ofstream file(filename);
     
@@ -196,34 +189,44 @@ void print_to_text(int tt, const std::unordered_map<int,int>& data, const std::s
     
     //Close the file
     file.close();
-    std::cout << "Data saved successfully at: " << filename << std::endl;
+    //std::cout << "Data saved successfully at: " << filename << std::endl;
 }
 
 
 int main(int argc, char** argv) {
 
+    std::cout << "Starting the simulation..." << std::endl;
     // Default values
-    int N = 100; // Total force units
+    int N = 1110; // Total force units
     double v = 0.001; // Fragmentation probability
-    int T = 10; //Change T, choose according to the process
+    int T = 110; //Change T, choose according to the process
 
     // Command Line Arguments
     if (argc > 2){
-        auto [N, v] = c_l_arguments(argv)
+        try{
+        N = std::stoi(argv[1]);
+        } catch (const std::exception& e) {
+            std::cerr << "Error: Invalid 'Total force units' (N). Using default value.\n";
+        }
+        try{
+        v = std::stod(argv[2]);
+        } catch (const std::exception& e) {
+            std::cerr << "Error: Invalid 'Fragmentation probability' (v). Using default value.\n";
+        }
     }
 
     // Generate the guerrilla vector of size N and values 1
     int tt = 0;
     std::vector<double> guerrilla(N, 1);
-    print_to_text(count_s(guerrilla), std::format("{}_data.txt", tt));
+    print_to_text(tt, count_s(guerrilla),"../results/" +  std::to_string(tt) + "_data.txt");
 
     // --- Starts the algorith ---
     // Initial iteration: Since at the begining every unit is "fine", we must combine in the first 
-    int tt = 1;
+    tt = 1;
     int chosen_index_i = choose(guerrilla, N); // Choose U_i (index of the vector)
     int chosen_index_j = choose(guerrilla, N); // Choose U_j (index of the vector)
     combine(guerrilla, chosen_index_i, chosen_index_j); // Combines the first two units
-    print_to_text(count_s(guerrilla), std::format("{}_data.txt", tt));
+    print_to_text(tt, count_s(guerrilla),"../results/" +   std::to_string(tt) + "_data.txt");
 
 
     // Time iteration over the period of time T:
@@ -238,7 +241,7 @@ int main(int argc, char** argv) {
             combine(guerrilla, chosen_index_i, chosen_index_j);
             
             loading(T, tt);
-            print_to_text(count_s(guerrilla), std::format("{}_data.txt", tt));
+            print_to_text(tt, count_s(guerrilla),"../results/" + std::to_string(tt) + "_data.txt");
         }
 
         else {
@@ -252,8 +255,9 @@ int main(int argc, char** argv) {
             }
             
             loading(T, tt);
-            print_to_text(count_s(guerrilla), std::format("{}_data.txt", tt));
+            print_to_text(tt, count_s(guerrilla),"../results/" + std::to_string(tt) + "_data.txt");
         }
     }
+    std::cout << "\nSimulation completed successfully, the results are saved in the 'results' folder." << std::endl;
     return 0;
 }
