@@ -1,3 +1,9 @@
+// Compilation:     g++ -std=c++20 simulation.cpp -o simulation.x -fsanitize=undefined -O3
+// Excecution (Command Line Arguments):  ./simulation.x N v T
+//      N : (Optional, default = 1110) Total force units
+//      v : (Optional, default = 0.001) Fragmentation probability
+//      T : (Optional, default = 110) Total iterations
+
 #include <iostream>
 #include <vector>
 #include <random>
@@ -5,6 +11,7 @@
 #include <stdexcept>
 #include <fstream>
 #include <string>
+#include <chrono>
 
 // Introduce the loading function as a void
 void loading(const int T, int & t) {
@@ -131,7 +138,7 @@ double count_alpha(const std::map<int, int>& data) {
 // Introduce the print_to_txt function as void
 void print_to_text(int tt,const std::map<int,int>& data, const std::string& filename) {
     //Open (or create) the file 
-    std::ofstream file(filename);
+    std::ofstream file(filename, std::ios::app);
     
     //Verify if the file opened correctly
     if (!file.is_open()) {
@@ -140,12 +147,13 @@ void print_to_text(int tt,const std::map<int,int>& data, const std::string& file
     }
 
     // Print the time and alpha value
-    file << "t = " << tt << "   " << "a = " << count_alpha(data) << "\n";
+    file << tt << "\t" << count_alpha(data) << "\t";
 
     //Conver the map and write each pair (Strength S , Unit Amount U)
     for (const auto&pair : data) {
-        file << pair.first << "," << pair.second << "\n";
+        file << "(" << pair.first << ", " << pair.second << ")";
     }
+    file << "\n";
     
     //Close the file
     file.close();
@@ -154,16 +162,18 @@ void print_to_text(int tt,const std::map<int,int>& data, const std::string& file
 
 
 int main(int argc, char** argv) {
+    // Start the timer!!!
+    auto start = std::chrono::high_resolution_clock::now();
 
-    std::cout << "Starting the simulation..." << std::endl;
+    std::cout << "\t--- WARS AND TERRORISM SIMULATION ---\nStarting the simulation...\n";
+    
     // Default values
     int N = 1110; // Total force units
-    // Try v = 0.0
     double v = 0.001; // Fragmentation probability
-    int T = 110; //Change T, choose according to the process
+    int T = 110; // Total iterations - Change T, choose according to the process
 
     // Command Line Arguments
-    if (argc > 2){
+    if (argc == 4){
         try{
         N = std::stoi(argv[1]);
         } catch (const std::exception& e) {
@@ -174,9 +184,17 @@ int main(int argc, char** argv) {
         } catch (const std::exception& e) {
             std::cerr << "Error: Invalid 'Fragmentation probability' (v). Using default value.\n";
         }
+        try{
+        T = std::stoi(argv[3]);
+        } catch (const std::exception& e) {
+            std::cerr << "Error: Invalid 'Total iterations' (T). Using default value.\n";
+        }
     }
 
-    // Inicialites the sedd and random number generator 
+    // Prints the parameters on the terminal to check their values
+    std::cout << "N = " << N << "\tv = " << v << "\tT = " << T << "\n\n";
+
+    // Inicialites the seed and random number generator 
     unsigned int seed = 42;
     //static std::random_device rd;
     std::mt19937 gen(seed);
@@ -184,7 +202,8 @@ int main(int argc, char** argv) {
     // Generate the guerrilla vector of size N and values 1
     int tt = 0;
     std::vector<double> guerrilla(N, 1);
-    print_to_text(tt, count_s(guerrilla),"../results/" +  std::to_string(tt) + "_data.txt");
+    std::string filename = "../results/master_data.txt";
+    print_to_text(tt, count_s(guerrilla), filename);
 
     // --- Starts the algorith ---
     // Initial iteration: Since at the begining every unit is "fine", we must combine in the first 
@@ -196,7 +215,7 @@ int main(int argc, char** argv) {
         chosen_index_j = choose(guerrilla, gen);
     }; 
     combine(guerrilla, chosen_index_i, chosen_index_j); // Combines the first two units
-    print_to_text(tt, count_s(guerrilla),"../results/" +   std::to_string(tt) + "_data.txt");
+    print_to_text(tt, count_s(guerrilla), filename);
     
     // Time iteration over the period of time T:
     for (int tt = 2; tt <= T; ++tt) {
@@ -213,7 +232,7 @@ int main(int argc, char** argv) {
             combine(guerrilla, chosen_index_i, chosen_index_j);
             
             loading(T, tt);
-            print_to_text(tt, count_s(guerrilla),"../results/" + std::to_string(tt) + "_data.txt");
+            print_to_text(tt, count_s(guerrilla), filename);
         }
 
         else {
@@ -230,9 +249,14 @@ int main(int argc, char** argv) {
             }
             
             loading(T, tt);
-            print_to_text(tt, count_s(guerrilla),"../results/" + std::to_string(tt) + "_data.txt");
+            print_to_text(tt, count_s(guerrilla), filename);
         }
     } 
-    std::cout << "\nSimulation completed successfully, the results are saved in the 'results' folder." << std::endl;
+    // Stop the timer!!!
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> simulation_time = end - start;
+
+    std::cout << "\n\nSimulation completed successfully in " << simulation_time.count() << " s. \nThe results are saved in the 'results' folder." << "\n";
+    
     return 0;
 }
