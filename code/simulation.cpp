@@ -88,50 +88,52 @@ std::map<int, int> count_s(const std::vector<double>& group) {
 // Introduced the count_alpha function as a double
 double count_alpha(const std::map<int, int>& data) {
     if (data.size() < 2){return 0.0;} // Insufficient number of points to calculate the line
-    else {
-        double accumulated = 0.0;
+    //HERE:else {
+    double accumulated = 0.0;
 
-        // Variables for the linear regression
-        double sum_X = 0.0;
-        double sum_Y = 0.0;
-        double sum_XY = 0.0;
-        double sum_X2 = 0.0;
-        int valid_points = 0;
+    // Variables for the linear regression
+    double sum_X = 0.0;
+    double sum_Y = 0.0;
+    double sum_XY = 0.0;
+    double sum_X2 = 0.0;
+    int valid_points = 0;
 
-        // Sweep of the map (ascending order)
-        for (const auto& pair : data) {
-            // The key 
-            double S = pair.first;
-            // The value
-            double probability = pair.second;
+    // Sweep of the map (ascending order)
+    for (const auto& pair : data) {
+        // The key 
+        double S = pair.first;
+        // The value
+        double probability = pair.second;
 
-            // Sum the probability to the accomulated one
-            accumulated += probability;
+        // Sum the probability to the accomulated one
+        accumulated += probability;
 
-            if (S > 0.0 && accumulated > 0.0) {
-                // Calculates the logs
-                double ln_S = std::log(S);               // X
-                double ln_prob = std::log(accumulated);  // Y
+        if (S > 1.0 && accumulated > 0.0) {
+        //HERE: if (S > 0.0 && accumulated > 0.0) { //Skip the S=1 to fit only on power-law tail, which is where S>= 2 
+            // Calculates the logs
+            double ln_S = std::log(S);               // X
+            double ln_prob = std::log(accumulated);  // Y
 
-                // Summatories for the linear regression
-                sum_X += ln_S;
-                sum_Y += ln_prob;
-                sum_XY += (ln_S * ln_prob);
-                sum_X2 += (ln_S * ln_S);
-                valid_points++;
-            }
+            // Summatories for the linear regression
+            sum_X += ln_S;
+            sum_Y += ln_prob;
+            sum_XY += (ln_S * ln_prob);
+            sum_X2 += (ln_S * ln_S);
+            valid_points++;
         }
-        if (valid_points < 2){return 0.0;} // insufficient valid point to calculate the logs 
-
-        // Mean Squares (linear regression)
-        double numerator = (valid_points * sum_XY) - (sum_X * sum_Y);
-        double denominator = (valid_points * sum_X2) - (sum_X * sum_X);
-        if (denominator == 0.0){return 0.0;}
-        
-        double slope = numerator/denominator;
-        
-        return slope + 1.0;
     }
+    if (valid_points < 2){return 0.0;} // insufficient valid point to calculate the logs 
+
+    // Mean Squares (linear regression)
+    double numerator = (valid_points * sum_XY) - (sum_X * sum_Y);
+    double denominator = (valid_points * sum_X2) - (sum_X * sum_X);
+    if (denominator == 0.0){return 0.0;}
+    
+    double slope = numerator/denominator;
+    
+    //HERE:return slope + 1.0;
+    return 1.0 - slope;
+    //HERE:}
 }
 
 
@@ -168,9 +170,9 @@ int main(int argc, char** argv) {
     std::cout << "\t--- WARS AND TERRORISM SIMULATION ---\nStarting the simulation...\n";
     
     // Default values
-    int N = 1110; // Total force units
+    int N = 1110; // Total force units // HERE: increase at least a mangitude order
     double v = 0.001; // Fragmentation probability
-    int T = 110; // Total iterations - Change T, choose according to the process
+    int T = 110; // Total iterations - Change T, choose according to the process // HERE: increase T = 100000
 
     // Command Line Arguments
     if (argc == 4){
