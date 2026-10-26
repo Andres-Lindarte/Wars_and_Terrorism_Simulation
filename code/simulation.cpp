@@ -1,7 +1,7 @@
 // Compilation:     g++ -std=c++20 simulation.cpp -o simulation.x -fsanitize=undefined -O3
 // Excecution (Command Line Arguments):  ./simulation.x N v T
 //      N : (Optional, default = 1110) Total force units
-//      v : (Optional, default = 0.001) Fragmentation probability
+//      v : (Optional, default = 0.01) Fragmentation probability
 //      T : (Optional, default = 110) Total iterations
 
 #include <iostream>
@@ -200,6 +200,9 @@ int main(int argc, char** argv) {
     int tt = 0;
     std::vector<double> guerrilla(N, 1);
     std::string filename = "../results/master_data.txt";
+
+    // Erase the data of the previous excecusion on the master 
+    std::ofstream(filename, std::ios::trunc).close(); 
     print_to_text(tt, count_s(guerrilla), filename);
 
     // --- Starts the algorith ---
@@ -228,10 +231,14 @@ int main(int argc, char** argv) {
             }; 
             combine(guerrilla, chosen_index_i, chosen_index_j);
             
+            // Loading bar and print
             loading(T, tt);
-            if (tt % 1000 == 0){
-                print_to_text(tt, count_s(guerrilla), filename);
+            if (T >= 1000000){ // If the total iterations are larger than 1 millon:
+                if (tt % 1000 == 0){ // Print only 1000 by 1000
+                    print_to_text(tt, count_s(guerrilla), filename);
+                }
             }
+            else {print_to_text(tt, count_s(guerrilla), filename);}
         }
 
         else {
