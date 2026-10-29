@@ -49,7 +49,7 @@ eje_y = np.log(lista_acumulada)
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
 
 # Gráfica 1: t vs alfa
-ax1.plot(valores_t, valores_a, color='blue')
+ax1.plot(valores_t[::10], valores_a, color='blue')
 ax1.set_xlabel('Tiempo (t)')
 ax1.set_ylabel(r'Exponente $\alpha$')
 ax1.set_title(r'Evolución temporal de $\alpha$')
