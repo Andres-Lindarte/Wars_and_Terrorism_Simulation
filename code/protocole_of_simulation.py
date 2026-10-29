@@ -31,13 +31,17 @@ def execute_simulations():
                 try:
                     subprocess.run([executable, "10000", v, T, s], check=True)
 
+                    sample_size = 10
+                    
                     with open(data_file, "r") as f:
                         lines = [line.strip() for line in f if line.strip()]
 
-                        if lines:
-                            last_line_columns = lines[-1].split()
-                            alpha_val = float(last_line_columns[1])
-                            alphas_seeds.append(alpha_val)
+                        if len(lines) >= sample_size:
+                            last_line_columns = lines[-sample_size:]
+                            for line in last_lines:
+                                columns = line.split()
+                                alpha_val = float(columns[1])
+                                alphas_seeds.append(alpha_val)
                         
                 except subprocess.CalledProcessError:
                     print(f"Error at excecuting the simulation with v={v}, T={T}, seed={s}.")
