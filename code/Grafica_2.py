@@ -78,7 +78,7 @@ fixed_seed = "42"
 master_data = load_master_data(files)
 
 
-# 3. STATISTICAL CALCULATION FOR ALPHA (MEAN & STD) 📊
+# 3. STATISTICAL CALCULATION FOR ALPHA (MEAN & STD) 
 
 sample_size = 10  # Number of points at the end of the simulation per seed
 alpha_stats = {}  # Dictionary to store (mu, sigma) for each nu
@@ -110,7 +110,7 @@ for nu in nu_values:
 
 print("="*50 + "\n")
 
-# 4. FIGURE 1: ALPHA EVOLUTION 📈
+# 4. FIGURE 1: ALPHA EVOLUTION 
 
 fig_alpha, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 5))
 alpha_axes = [ax1, ax2, ax3]
@@ -133,7 +133,7 @@ for i, file in enumerate(files):
 fig_alpha.suptitle("Time Evolution of Exponent \\alpha (Max T)", fontsize=14)
 fig_alpha.tight_layout()
 
-# 5. FIGURE 2: SIZE DISTRIBUTION (LOG-LOG) 📊
+# 5. FIGURE 2: SIZE DISTRIBUTION (LOG-LOG) 
 
 fig_log, (ax11, ax22, ax33) = plt.subplots(1, 3, figsize=(15, 5))
 log_axes = [ax11, ax22, ax33]
@@ -193,7 +193,7 @@ for ax in log_axes:
 fig_log.suptitle("Size Distribution (Log-Log)", fontsize=14)
 fig_log.tight_layout()
 
-# 6. SAVE AND DISPLAY RESULTS 📄
+# 6. SAVE AND DISPLAY RESULTS 
 Path('../results').mkdir(parents=True, exist_ok=True)
 fig_alpha.savefig('../results/ALPHA.pdf', dpi=300)
 fig_log.savefig('../results/LOG_DISTRIBUTION.pdf', dpi=300)
