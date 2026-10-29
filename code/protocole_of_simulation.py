@@ -4,17 +4,16 @@ import sys
 # Names
 cpp_file = "simulation.cpp"
 executable = "./simulation.x" 
-plot_script = "grafica.py"
+plot_script = "Grafica_2.py"
 
 # Different values for the simulation
-v_values = ["0.01", "0.069", "0.10"]
+v_values = ["0.01", "0.069", "0.1"]
 T_values = ["10000", "25000", "50000"]
 seed_values = ["42", "69", "911"]
 
 def compile():
     print(f"Compilating {cpp_file}...")
     try:
-        # Comando: g++ simulacion.cpp -o simulacion
         subprocess.run(["g++", "-std=c++20", cpp_file, "-o", "simulation.x", "-O3"], check=True)
         print("Successfully compiled.\n")
     except subprocess.CalledProcessError:

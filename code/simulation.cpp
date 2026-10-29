@@ -247,7 +247,7 @@ int main(int argc, char** argv) {
     std::chrono::duration<double> simulation_time = end - start;
 
     std::cout << "\n\nSimulation completed successfully in " << simulation_time.count() << " s. \nThe results are saved in the 'data' folder." << "\n";
-    std::cout << "The text file is structured as: ITERATION ALPHA [S_i, n_i]";
+    std::cout << "The text file is structured as: ITERATION ALPHA [S_i, n_i]\n\n";
     
     return 0;
 }

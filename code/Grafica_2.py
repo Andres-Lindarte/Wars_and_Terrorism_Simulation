@@ -1,24 +1,37 @@
 import matplotlib.pyplot as plt
 from pathlib import Path
 import numpy as np
+from sklearn.linear_model import LinearRegression
+from scipy import stats
 
-# 1. Encontrar los archivos
-archivos = list(Path("../data").glob("master_data_*.txt"))  # ta_nu_T_semilla (master, data, nu, T, semilla)
-# (Ajusta la ruta en Path() si tus archivos están en otra carpeta)
 
-# 2. Leer y guardar los datos
-datos_maestros = [] #datos_maestros será una lista de tuplas, cada tupla contiene (valores_t, valores_a, ultima_linea_tuplas)
+# ==========================================
+# 0. FUNCIONES HELPER 🛠️
+# ==========================================
+def extraer_parametros(nombre_archivo):
+    """
+    Extrae nu, T y semilla del nombre del archivo: master_data_nu_T_semilla.txt
+    """
+    partes = nombre_archivo.split('_')
+    nu = partes[2]
+    T = partes[3]
+    s = partes[4].replace('.txt', '')
+    return nu, T, s
 
-for archivo in archivos:
-    # Reiniciamos variables por cada archivo 
-    valores_t = []
-    valores_a = []
-    ultima_linea_tuplas = ""
-    
-    with open(archivo, 'r') as f:
-        for linea in f:
-                
-                # maxsplit=2 separa t, alfa y deja todas las tuplas juntas en el índice 2
+
+def cargar_datos_maestros(lista_archivos):
+    """
+    Lee cada archivo .txt y extrae (valores_t, valores_a, ultima_linea_tuplas)
+    Retorna la lista datos_maestros completa.
+    """
+    datos = []
+    for archivo in lista_archivos:
+        valores_t = []
+        valores_a = []
+        ultima_linea_tuplas = ""
+        
+        with open(archivo, 'r') as f:
+            for linea in f:
                 partes = linea.split(maxsplit=2) 
                 if len(partes) >= 2:
                     valores_t.append(float(partes[0]))
@@ -26,91 +39,164 @@ for archivo in archivos:
                     
                 if len(partes) == 3:
                     ultima_linea_tuplas = partes[2] 
+        
+        datos.append((valores_t, valores_a, ultima_linea_tuplas))
     
-    # Guardamos los datos de este archivo como una tupla
-    datos_maestros.append((valores_t, valores_a, ultima_linea_tuplas))
+    return datos
 
-# 3. FIGURA 1: Evolución de Alfa
+def linear_regression(x: list, y: list):
+    X=np.array(x) # Convert the list to a numpy array
+    Y=np.array(y) 
+    X = X.reshape(-1, 1) # Reshape the data to fit the model
+
+    model = LinearRegression() # Create a linear regression model
+    model.fit(X, Y) # Fit the model to the data
+
+    slope = model.coef_[0] # Get the slope of the line
+    intercept = model.intercept_ # Get the intercept of the line
+    r_pearson, _ = stats.pearsonr(x, y) # Calculate the Pearson correlation coefficient
+    r_squared = r_pearson**2 # Calculate the R-squared value
+    return slope, intercept, r_squared
+
+
+# ==========================================
+# 1. PARÁMETROS GLOBALES Y ARCHIVOS
+# ==========================================
+# Archivos
+archivos = list(Path("../data").glob("master_data_*.txt"))
+
+
+# Listas de referencia para la lógica de filtrado y ubicación
+nu_valores = ["0.01", "0.069", "0.1"]
+T_valores = ["10000", "25000", "50000"]  # Se ajustan libremente T1, T2, T3
+semillas = ["42", "69", "911"]
+
+
+# Mapeo de tiempos a semillas específicas (Figura 2)
+semilla_por_T = {
+    T_valores[0]: semillas[0],
+    T_valores[1]: semillas[1],
+    T_valores[2]: semillas[2]
+}
+
+
+# Configuración para la Figura 1
+T_maximo = T_valores[-1]  # Toma automáticamente el mayor T (último elemento)
+semilla_fija = "42"
+
+
+# ==========================================
+# 2. LEER Y GUARDAR LOS DATOS
+# ==========================================
+datos_maestros = cargar_datos_maestros(archivos)
+
+# ==========================================
+# 3. FIGURA 1: EVOLUCIÓN DE ALFA 📈
+# ==========================================
 fig_alfa, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 5))
 ejes_alfa = [ax1, ax2, ax3]
 
-for i in range(len(archivos)): # Iteramos según la cantidad de archivos
 
-    # Extraer variables del nombre del archivo
+for i in range(len(archivos)):
     nombre_archivo = archivos[i].name
-    partes = nombre_archivo.split('_')
-    nu = partes[2]
-    T = partes[3] 
     
-    # Graficar y configurar ejes (aplicando [::100] a AMBOS ejes para que midan lo mismo)
-    ejes_alfa[i].plot(datos_maestros[i][0][3::50], datos_maestros[i][1][3::50], "-*", color='blue')  # Usamos [3::100] para saltar los primeros 3 valores y luego tomar cada 100
-    ejes_alfa[i].set_xlabel('Tiempo (t)')
-    ejes_alfa[i].set_ylabel(r'Exponente $\alpha$')
-    ejes_alfa[i].tick_params(top=True, right=True, direction='in')
-    
-    # Título para cada gráfica individual
-    ejes_alfa[i].set_title(f"\u03BD = {nu} y T = {T}")
+    # Llamamos a nuestra nueva función 🛠️
+    nu, T, s = extraer_parametros(nombre_archivo)
 
-# Título grande para toda la figura completa (FUERA DEL CICLO)
-fig_alfa.suptitle("Evolución temporal del exponente \u03B1", fontsize=14)
-fig_alfa.tight_layout() # Ajusta los márgenes automáticamente
 
-# 4. FIGURA 2: Distribución (Log-Log)
+    # Filtro: Solo el T más alto y una semilla fija 🔍
+    if T == T_maximo and s == semilla_fija:
+        indice = nu_valores.index(nu)  # Columna 0, 1 o 2 según nu
+        
+        # Graficamos en el subeje correspondiente
+        ejes_alfa[indice].plot(datos_maestros[i][0][3::2], datos_maestros[i][1][3::2], "-*", color='blue')
+        ejes_alfa[indice].set_xlabel('Tiempo (t)')
+        ejes_alfa[indice].set_ylabel(r'Exponente $\alpha$')
+        ejes_alfa[indice].tick_params(top=True, right=True, direction='in')
+        ejes_alfa[indice].set_title(f"\u03BD = {nu} (T = {T})")
+
+
+fig_alfa.suptitle("Evolución temporal del exponente \u03B1 (T Máximo)", fontsize=14)
+fig_alfa.tight_layout()
+
+
+# ==========================================
+# 4. FIGURA 2: DISTRIBUCIÓN (LOG-LOG) 📊
+# ==========================================
 fig_log, (ax11, ax22, ax33) = plt.subplots(1, 3, figsize=(15, 5))
 ejes_log = [ax11, ax22, ax33]
 
+colors = {T_valores[0]: "tab:blue",
+          T_valores[1]: "tab:green",
+          T_valores[2]: "tab:red",
+          }
+
+
 for i in range(len(archivos)):
-    # Extraer variables del nombre del archivo
     nombre_archivo = archivos[i].name
-    partes = nombre_archivo.split('_')
-    nu = partes[2]
-    T = partes[3]
-
-    texto_tuplas = datos_maestros[i][2]
     
-    # 1 y 2. Limpieza del texto para extraer S y N
-    lista_pares = texto_tuplas.strip(" ()\n").split(")(")
-    lista_S = []
-    lista_N = []
+    # Llamamos nuevamente a la función helper 🛠️
+    nu, T, s = extraer_parametros(nombre_archivo)
 
-    for par in lista_pares:
-        if ',' in par:
-            numeros = par.split(',')
-            lista_S.append(float(numeros[0]))
-            lista_N.append(float(numeros[1]))
-            
-    # 3. Calcular la frecuencia acumulada (de mayor a menor)
-    S_invertida = lista_S[::-1]
-    N_invertida = lista_N[::-1]
 
-    acumulada = 0
-    lista_acumulada = []
+    # Filtro: Semilla única asociada a cada T 🔍
+    if s == semilla_por_T[T]:
+        indice = nu_valores.index(nu)  # Columna 0, 1 o 2 según nu
 
-    for n in N_invertida:
-        acumulada += n
-        lista_acumulada.append(acumulada)
 
-    # 4. Calcular los logaritmos
-    eje_x = np.log(S_invertida)
-    eje_y = np.log(lista_acumulada)
-            
-    # 5. Graficar (usamos plot normal porque YA calculamos el Ln)
-    ejes_log[i].plot(eje_x, eje_y, marker='o', linestyle='none', color='red')
-    
-    ejes_log[i].set_xlabel('Ln(S)')
-    ejes_log[i].set_ylabel('Ln(Frecuencia Acumulada)')
-    ejes_log[i].tick_params(top=True, right=True, direction='in')
-    
-    # Título para cada gráfica individual
-    ejes_log[i].set_title(f"\u03BD = {nu} y T = {T}")
+        texto_tuplas = datos_maestros[i][2]
+        lista_pares = texto_tuplas.strip(" ()\n").split(")(")
+        lista_S = []
+        lista_N = []
 
-# Título grande para toda la figura completa y ajuste final (FUERA DEL CICLO)
+
+        for par in lista_pares:
+            if ',' in par:
+                numeros = par.split(',')
+                lista_S.append(float(numeros[0]))
+                lista_N.append(float(numeros[1]))
+                
+        S_invertida = lista_S[::-1]
+        N_invertida = lista_N[::-1]
+
+
+        acumulada = 0
+        lista_acumulada = []
+        for n in N_invertida:
+            acumulada += n
+            lista_acumulada.append(acumulada)
+
+
+        eje_x = np.log(S_invertida)
+        eje_y = np.log(lista_acumulada)
+                
+        # Graficamos agregando la etiqueta para la leyenda
+        ejes_log[indice].plot(eje_x, eje_y, marker='o', linestyle='none', color=colors[T], label=f"T = {T}", alpha=0.5)
+
+        slope, intercept, _ = linear_regression(eje_x, eje_y)
+        x_full = np.linspace(min(eje_x) - 0.01*max(eje_x), max(eje_x) + 0.01*max(eje_x), 100)
+        ejes_log[indice].plot(x_full, slope*x_full + intercept, color=colors[T])
+
+        ejes_log[indice].set_xlabel('Ln(S)')
+        ejes_log[indice].set_ylabel('Ln(Frecuencia Acumulada)')
+        ejes_log[indice].tick_params(top=True, right=True, direction='in')
+        ejes_log[indice].set_title(f"\u03BD = {nu}")
+
+
+# Activamos la leyenda en cada subgráfica de la Figura 2
+for ax in ejes_log:
+    ax.legend()
+
+
 fig_log.suptitle("Distribución de tamaños (Log-Log)", fontsize=14)
 fig_log.tight_layout()
 
-# 5. Guardar los PDFs por separado
-fig_alfa.savefig('../results/ALPHA.pdf', dpi=300)
-fig_log.savefig('../results/DISTRIBUCION_LOG.pdf', dpi=300) 
-# (Nota: asegúrate de que la carpeta '../results/' exista en tu computadora)
 
-plt.show() # Para visualizar las gráficas en tu pantalla
+# ==========================================
+# 5. GUARDAR Y MOSTRAR RESULTADOS 📄
+# ==========================================
+fig_alfa.savefig('../results/ALPHA.pdf', dpi=300)
+fig_log.savefig('../results/DISTRIBUCION_LOG.pdf', dpi=300)
+
+
+plt.show()
