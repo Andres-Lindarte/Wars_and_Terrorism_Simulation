@@ -1,10 +1,12 @@
 import subprocess
 import sys
+import numpy as np
 
 # Names
 cpp_file = "simulation.cpp"
 executable = "./simulation.x" 
 plot_script = "Grafica_2.py"
+data_file = "master_data.txt"
 
 # Different values for the simulation
 v_values = ["0.01", "0.069", "0.1"]
@@ -24,12 +26,29 @@ def execute_simulations():
     print("\t### SIMULATION PROTOCOLE STARTED: ###")
     for v in v_values:
         for T in T_values:
+            alphas_seeds = []
             for s in seed_values:
                 try:
                     subprocess.run([executable, "10000", v, T, s], check=True)
+
+                with open(data_file, "r") as f:
+                    lines = [line.strip() for line in f if line.strip()]
+
+                    if lines:
+                        last_line_columns = lines[-1].split()
+                        alpha_val = float(last_time_columns[1])
+                        alphas_seeds.append(alpha_val)
+                        
                 except subprocess.CalledProcessError:
                     print(f"Error at excecuting the simulation with v={v}, T={T}, seed={s}.")
                     sys.exit(1)
+                except (IndexError, ValueError) as e:
+                    print(f"Error leyendo el valor de alpha en {data_file}: {e}")
+                    sys.exit(1)
+
+    mu = np.mean(alphas_seeds)
+    sigma = np.std(alphas_seeds, ddof=1)
+    
     print("\t### SIMULATION PROTOCOLE FINISHED SUCCESSFULLY ###")
 
 
