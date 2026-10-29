@@ -1,7 +1,7 @@
 # Wars and Terrorism Simulation
 ### Guerrilla Warfare Simulation & Statistical Analysis Pipeline
 
-An automated computational framework designed to simulate force fragmentation and combination dynamics in guerrilla warfare and terrorism models. The pipeline executes high-performance C++ Monte Carlo simulations, parses time-series state data, calculates the steady-state mean ($\mu$) and unbiased sample standard deviation ($\sigma$) of the power-law exponent ($\alpha$), and generates publication-ready visualization figures using Python.
+An automated computational framework designed to simulate force fragmentation and combination dynamics in guerrilla warfare and terrorism models. The pipeline executes C++ simulations, parses time-series state data, calculates the steady-state mean ($\mu$) and unbiased sample standard deviation ($\sigma$) of the power-law exponent ($\alpha$), and generates visualization figures using Python.
 
 ---
 
