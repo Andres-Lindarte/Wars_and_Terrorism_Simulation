@@ -36,8 +36,7 @@ def execute_simulations():
                     with open(data_file, "r") as f:
                         lines = [line.strip() for line in f if line.strip()]
 
-                        if len(lines) >= sample_size:
-                            last_line_columns = lines[-sample_size:]
+                            last_lines = lines[-sample_size:]
                             for line in last_lines:
                                 columns = line.split()
                                 alpha_val = float(columns[1])
