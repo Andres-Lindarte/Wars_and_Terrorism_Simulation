@@ -1,8 +1,9 @@
 // Compilation:     g++ -std=c++20 simulation.cpp -o simulation.x -fsanitize=undefined -O3
-// Excecution (Command Line Arguments):  ./simulation.x N v T
-//      N : (Optional, default = 1110) Total force units
-//      v : (Optional, default = 0.01) Fragmentation probability
-//      T : (Optional, default = 110) Total iterations
+// Excecution (Command Line Arguments):  ./simulation.x [N] [v] [T] [SEED]
+//      N :     (Optional, default = 1110) Total force units
+//      v :     (Optional, default = 0.01) Fragmentation probability
+//      T :     (Optional, default = 110) Total iterations
+//      SEED :  (Optional, default = 42) Seed of the random generator
 
 #include <iostream>
 #include <vector>
@@ -12,12 +13,12 @@
 #include <fstream>
 #include <string>
 #include <chrono>
+#include <sstream>
 
 // Introduce the loading function as a void
-void loading(const int T, int & t) {
-    double interval = T/10; // Progress in 10% blocks (could be changed)
+void loading(long long T, long long t) {
     static int pre_k = -1; // Save the last printed progress
-    int k = static_cast<int>(std::round(t / interval)); 
+    int k = static_cast<int>(std::round(10.0 * t / T)); // Progress in 10% blocks (could be changed)
 
     if (k > pre_k) { // Only prints if there is a change
         pre_k = k;  
@@ -86,7 +87,7 @@ std::map<int, int> count_s(const std::vector<double>& group) {
 
 
 // Introduced the count_alpha function as a double
-double count_alpha(const std::map<int, int>& data) {
+double count_alpha_accumulated(const std::map<int, int>& data) {
     if (data.size() < 2){return 0.0;} // Insufficient number of points to calculate the line
     //HERE:else {
     double accumulated = 0.0;
@@ -143,18 +144,19 @@ void print_to_text(int tt,const std::map<int,int>& data, const std::string& file
         return;
     }
     
-    // Print the time and alpha value
-    file << tt << "\t" << count_alpha(data) << "\t";
+    if (tt % 1000 == 0.0){ // Prints 1000 by 1000
+        // Print the time and alpha value
+        file << tt << "\t" << count_alpha_accumulated(data) << "\t";
 
-    //Conver the map and write each pair (Strength S , Unit Amount U)
-    for (const auto&pair : data) {
-        file << "(" << pair.first << ", " << pair.second << ")";
+        //Conver the map and write each pair (Strength S , Unit Amount U)
+        for (const auto&pair : data) {
+            file << "(" << pair.first << ", " << pair.second << ")";
+        }
+        file << "\n";
+        
+        //Close the file
+        file.close();
     }
-    file << "\n";
-    
-    //Close the file
-    file.close();
-    //std::cout << "Data saved successfully at: " << filename << std::endl;
 }
 
 
@@ -168,9 +170,10 @@ int main(int argc, char** argv) {
     int N = 1110; // Total force units // HERE: increase at least a mangitude order
     double v = 0.01; // Fragmentation probability
     int T = 110; // Total iterations - Change T, choose according to the process // HERE: increase T = 100000
+    double seed = 42; // Seed of the random generator
 
     // Command Line Arguments
-    if (argc == 4){
+    if (argc == 5){
         try{
         N = std::stoi(argv[1]);
         } catch (const std::exception& e) {
@@ -186,20 +189,25 @@ int main(int argc, char** argv) {
         } catch (const std::exception& e) {
             std::cerr << "Error: Invalid 'Total iterations' (T). Using default value.\n";
         }
+        try {
+        seed = std::stoi(argv[4]);
+        } catch (const std::exception& e) {
+            std::cerr << "Error: Invalid 'Seed' (SEED). Using default value.\n";
+        }
     }
 
     // Prints the parameters on the terminal to check their values
     std::cout << "N = " << N << "\tv = " << v << "\tT = " << T << "\n\n";
 
-    // Inicialites the seed and random number generator 
-    unsigned int seed = 42;
-    //static std::random_device rd;
+    // Inicialites the random number generator 
     std::mt19937 gen(seed);
 
     // Generate the guerrilla vector of size N and values 1
     int tt = 0;
     std::vector<double> guerrilla(N, 1);
-    std::string filename = "../results/master_data.txt";
+    std::stringstream stream_name;
+    stream_name << "../results/master_data_" << N << "_" << v << "_" << T << "_" << seed << ".txt";
+    std::string filename = stream_name.str();
 
     // Erase the data of the previous excecusion on the master 
     std::ofstream(filename, std::ios::trunc).close(); 
