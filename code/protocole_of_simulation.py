@@ -4,7 +4,7 @@ import numpy as np
 
 # Names
 cpp_file = "simulation.cpp"
-executable = "./simulation.x" 
+executable = "./simulation.x"
 plot_script = "Grafica_2.py"
 data_file = "master_data.txt"
 
@@ -45,7 +45,7 @@ def execute_simulations():
                 except (IndexError, ValueError) as e:
                     print(f"Error leyendo el valor de alpha en {data_file}: {e}")
                     sys.exit(1)
-
+            #Calulation of the mean and standard deviation
             mu = np.mean(alphas_seeds)
             sigma = np.std(alphas_seeds, ddof=1)
             print(f"Resultado para v={v}, T={T}: Alpha = {mu:.4f} ± {sigma:.4f}")
