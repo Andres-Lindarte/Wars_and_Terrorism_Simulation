@@ -133,10 +133,6 @@ double count_alpha_accumulated(const std::map<int, int>& data) {
 }
 
 
-// Introduced the count_alpha_mle function as a double
-//double count_alpha_mle 
-
-
 // Introduce the print_to_txt function as void
 void print_to_text(int tt,const std::map<int,int>& data, const std::string& filename) {
     //Open (or create) the file 
@@ -201,7 +197,7 @@ int main(int argc, char** argv) {
     }
 
     // Prints the parameters on the terminal to check their values
-    std::cout << "N = " << N << "\tv = " << v << "\tT = " << T << "\n\n";
+    std::cout << "N = " << N << "\tv = " << v << "\tT = " << T << "\tSeed = " << seed << "\n\n";
 
     // Inicialites the random number generator 
     std::mt19937 gen(seed);
@@ -251,6 +247,7 @@ int main(int argc, char** argv) {
     std::chrono::duration<double> simulation_time = end - start;
 
     std::cout << "\n\nSimulation completed successfully in " << simulation_time.count() << " s. \nThe results are saved in the 'data' folder." << "\n";
+    std::cout << "The text file is structured as: ITERATION ALPHA [S_i, n_i]";
     
     return 0;
 }
