@@ -86,7 +86,7 @@ std::map<int, int> count_s(const std::vector<double>& group) {
 }
 
 
-// Introduced the count_alpha function as a double
+// Introduced the count_alpha_accumulated function as a double
 double count_alpha_accumulated(const std::map<int, int>& data) {
     if (data.size() < 2){return 0.0;} // Insufficient number of points to calculate the line
     //HERE:else {
@@ -131,6 +131,10 @@ double count_alpha_accumulated(const std::map<int, int>& data) {
     return 1.0 - slope;
     //HERE:}
 }
+
+
+// Introduced the count_alpha_mle function as a double
+//double count_alpha_mle 
 
 
 // Introduce the print_to_txt function as void
@@ -206,7 +210,7 @@ int main(int argc, char** argv) {
     int tt = 0;
     std::vector<double> guerrilla(N, 1);
     std::stringstream stream_name;
-    stream_name << "../results/master_data_" << N << "_" << v << "_" << T << "_" << seed << ".txt";
+    stream_name << "../data/master_data_" << v << "_" << T << "_" << seed << ".txt";
     std::string filename = stream_name.str();
 
     // Erase the data of the previous excecusion on the master 
@@ -214,39 +218,15 @@ int main(int argc, char** argv) {
     print_to_text(tt, count_s(guerrilla), filename);
 
     // --- Starts the algorith ---
-    // Initial iteration: Since at the begining every unit is "fine", we must combine in the first 
-    tt = 1;
-    int chosen_index_i = choose(guerrilla, gen); // Choose U_i (index of the vector)
-    int chosen_index_j = choose(guerrilla, gen); // Choose U_j (index of the vector)
-    // Choose another U_j if U_i = U_j
-    while (chosen_index_i == chosen_index_j){
-        chosen_index_j = choose(guerrilla, gen);
-    }; 
-    combine(guerrilla, chosen_index_i, chosen_index_j); // Combines the first two units
-    print_to_text(tt, count_s(guerrilla), filename);
-    
     // Time iteration over the period of time T:
-    for (int tt = 2; tt <= T; ++tt) {
+    for (int tt = 1; tt <= T; ++tt) {
         // Choose U_i
         int chosen_index_i = choose(guerrilla, gen);
 
-        // Check if U_i is "fine", i.e., S_i = 1
-        if (guerrilla[chosen_index_i] == 1){
-            // The only option is to combine:
-            int chosen_index_j = choose(guerrilla, gen);
-            while (chosen_index_i == chosen_index_j){
-                chosen_index_j = choose(guerrilla, gen);
-            }; 
-            combine(guerrilla, chosen_index_i, chosen_index_j);
-            
-            // Loading bar and print
-            loading(T, tt);
-            if (T >= 1000000){ // If the total iterations are larger than 1 millon:
-                if (tt % 1000 == 0){ // Print only 1000 by 1000
-                    print_to_text(tt, count_s(guerrilla), filename);
-                }
-            }
-            else {print_to_text(tt, count_s(guerrilla), filename);}
+        // Check if there is only one unit (it can not combine)
+        if (guerrilla.size() == 1){
+            std::cout << "\tStopped the simulation!!!\nThere was only one atack unit, it can not combine\n";
+            break;
         }
 
         else {
@@ -263,16 +243,14 @@ int main(int argc, char** argv) {
             }
             
             loading(T, tt);
-            if (tt % 1000 == 0){
-                print_to_text(tt, count_s(guerrilla), filename);
-            }
+            print_to_text(tt, count_s(guerrilla), filename);
         }
     } 
     // Stop the timer!!!
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> simulation_time = end - start;
 
-    std::cout << "\n\nSimulation completed successfully in " << simulation_time.count() << " s. \nThe results are saved in the 'results' folder." << "\n";
+    std::cout << "\n\nSimulation completed successfully in " << simulation_time.count() << " s. \nThe results are saved in the 'data' folder." << "\n";
     
     return 0;
 }
