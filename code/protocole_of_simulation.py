@@ -31,13 +31,13 @@ def execute_simulations():
                 try:
                     subprocess.run([executable, "10000", v, T, s], check=True)
 
-                with open(data_file, "r") as f:
-                    lines = [line.strip() for line in f if line.strip()]
+                    with open(data_file, "r") as f:
+                        lines = [line.strip() for line in f if line.strip()]
 
-                    if lines:
-                        last_line_columns = lines[-1].split()
-                        alpha_val = float(last_time_columns[1])
-                        alphas_seeds.append(alpha_val)
+                        if lines:
+                            last_line_columns = lines[-1].split()
+                            alpha_val = float(last_line_columns[1])
+                            alphas_seeds.append(alpha_val)
                         
                 except subprocess.CalledProcessError:
                     print(f"Error at excecuting the simulation with v={v}, T={T}, seed={s}.")
@@ -46,8 +46,9 @@ def execute_simulations():
                     print(f"Error leyendo el valor de alpha en {data_file}: {e}")
                     sys.exit(1)
 
-    mu = np.mean(alphas_seeds)
-    sigma = np.std(alphas_seeds, ddof=1)
+            mu = np.mean(alphas_seeds)
+            sigma = np.std(alphas_seeds, ddof=1)
+            print(f"Resultado para v={v}, T={T}: Alpha = {mu:.4f} ± {sigma:.4f}")
     
     print("\t### SIMULATION PROTOCOLE FINISHED SUCCESSFULLY ###")
 
