@@ -29,6 +29,7 @@ The system reaches a stationary state where the size distribution follows a powe
 │   ├── simulation.cpp              # C++ Monte Carlo simulation engine (calculates alpha & prints state/terminal summary)
 │   ├── simulation.x                # Compiled C++ executable binary
 │   ├── protocole_of_simulation.py  # Python launcher script (compiles & loops over parameter protocol)
+│   ├── protocole_parallelized.py   # Python launcher script (compiles & loops over parameter protocol) parallelized over the cores of the CPU.
 │   └── plotting.py                 # Multi-panel analysis script (calculates µ ± σ and plots Figure 1 & 2)
 ├── data/                           # Generated simulation data files (master_data_v_T_seed.txt)
 ├── results/                        # Exported plot PDFs (ALPHA.pdf, LOG_DISTRIBUTION.pdf)
@@ -72,10 +73,14 @@ g++ -std=c++20 code/simulation.cpp -o code/simulation.x -O3
 * **Data Output:** Writes step data every 1000 iterations to `data/master_data_v_T_seed.txt`.
 
 ### 2. Full Protocol Execution
-To compile C++, run all parameter combinations ($\nu \in \{0.01, 0.069, 0.1\}$, $T \in \{10000, 25000, 50000\}$, seeds $\in \{42, 69, 911\}$), and generate final graphics automatically:
+To compile C++, run all parameter combinations ($\nu \in \{0.01, 0.069, 0.1\}$, $T \in \{1000000, 2500000, 5000000\}$, seeds $\in \{42, 69, 911\}$), and generate final graphics automatically:
 
 ```bash
 python3 code/protocole_of_simulation.py
+```
+Or it can be run independentlly over the cores of the CPU, for a faster excecution of the protocole:
+```bash
+python3 code/protocole_parallelized.py
 ```
 
 ### 3. Isolated Plotting Scripts
