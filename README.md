@@ -29,8 +29,7 @@ The system reaches a stationary state where the size distribution follows a powe
 │   ├── simulation.cpp              # C++ Monte Carlo simulation engine (calculates alpha & prints state/terminal summary)
 │   ├── simulation.x                # Compiled C++ executable binary
 │   ├── protocole_of_simulation.py  # Python launcher script (compiles & loops over parameter protocol)
-│   ├── Grafica_2.py                # Multi-panel analysis script (calculates µ ± σ and plots Figure 1 & 2)
-│   └── grafica.py                  # Quick single-run visualization script (t vs alpha & log-log distribution)
+│   └── plotting.py                 # Multi-panel analysis script (calculates µ ± σ and plots Figure 1 & 2)
 ├── data/                           # Generated simulation data files (master_data_v_T_seed.txt)
 ├── results/                        # Exported plot PDFs (ALPHA.pdf, LOG_DISTRIBUTION.pdf)
 └── README.md                       # Project documentation
@@ -50,20 +49,23 @@ The system reaches a stationary state where the size distribution follows a powe
   ```bash
   pip install numpy matplotlib scikit-learn scipy
   ```
-
+* Or use requirements.txt to install all in one go:
+  ```bash
+  pip install -r requirements.txt
+  ```
 ---
 
 ## Execution & Pipeline Workflow
 
 ### 1. Manual C++ Execution
-You can compile and run a single simulation run directly from the terminal:
+You can compile and run a single simulation run directly from the terminal (from the main folder):
 
 ```bash
 # Compilation
 g++ -std=c++20 code/simulation.cpp -o code/simulation.x -O3
 
 # Execution syntax: ./simulation.x [N] [v] [T] [SEED]
-./simulation.x 10000 0.01 50000 42
+./simulation.x 10000 0.01 5000000 42
 ```
 
 * **Terminal Output:** Displays a progress bar, run time, and the **Average value of alpha (in the last 10%)** for that specific run.
@@ -77,14 +79,13 @@ python3 code/protocole_of_simulation.py
 ```
 
 ### 3. Isolated Plotting Scripts
-* **`code/Grafica_2.py`:** Reads all files in `data/`, groups by parameter combinations ($\nu, T$), calculates $\mu \pm \sigma$ over the last 10% of steps across seeds, and generates multi-panel figures saved in `results/`.
-* **`code/grafica.py`:** Utility script to quickly inspect a single output file (`master_data.txt`), plotting $t$ vs. $\alpha$ alongside the log-log distribution.
+* **`code/plotting.py`:** Reads all files in `data/`, groups by parameter combinations ($\nu, T$), calculates $\mu \pm \sigma$ over the last 10% of steps across seeds, and generates multi-panel figures saved in `results/`.
 
 ---
 
 ## Output Visualizations
 
-The main script `Grafica_2.py` generates two primary figures saved in `results/`:
+The main script `plotting.py` generates two primary figures saved in `results/`:
 
 1. **`ALPHA.pdf` (Time Evolution):** Plots the trajectory of exponent $\alpha(t)$ at maximum time ($T$) across different fragmentation probabilities ($\nu$). Subplot titles explicitly show $\nu$, $T$, and $\alpha = \mu \pm \sigma$.
 2. **`LOG_DISTRIBUTION.pdf` (Log-Log Distribution):** Plots $\ln(\text{Cumulative Frequency})$ vs. $\ln(S)$ for different $T$ values with linear regression fits and statistics formatted in the subplot headers.
