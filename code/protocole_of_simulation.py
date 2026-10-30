@@ -4,7 +4,7 @@ import sys
 # Names
 cpp_file = "simulation.cpp"
 executable = "./simulation.x" 
-plot_script = "grafica.py"
+plot_script = "Grafica_2.py" 
 
 # Different values for the simulation
 v_values = ["0.01", "0.069", "0.10"]
@@ -38,7 +38,7 @@ def plot():
     print(f"Excecution {plot_script}...")
     try:
         # Change to python3 if needed
-        subprocess.run(["python", plot_script], check=True)
+        subprocess.run(["python3", plot_script], check=True)
         print("The charts were generated succesfully!.")
     except subprocess.CalledProcessError:
         print("Error during the excecution of the graphing program")
