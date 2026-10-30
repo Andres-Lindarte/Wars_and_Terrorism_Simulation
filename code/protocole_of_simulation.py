@@ -1,5 +1,8 @@
 import subprocess
 import sys
+import itertools
+import concurrent.futures
+import os
 
 # Names
 cpp_file = "simulation.cpp"
@@ -21,18 +24,37 @@ def compile():
         print("Error during the compilation of the C++ program.")
         sys.exit(1)
 
+# Nueva función auxiliar para correr una sola simulación
+def run_single_simulation(params):
+    v, T, s = params
+    try:
+        # capture_output=True evita que las barras de carga de C++ colapsen la terminal
+        subprocess.run([executable, "10000", v, T, s], check=True, capture_output=True, text=True)
+        print(f"Completado: v={v}, T={T}, seed={s}")
+    except subprocess.CalledProcessError:
+        print(f"Error at executing the simulation with v={v}, T={T}, seed={s}.")
+        raise  # Lanza el error para que el ejecutor principal lo detecte
+
 def execute_simulations():
     print("\t### SIMULATION PROTOCOLE STARTED: ###")
-    for v in v_values:
-        for T in T_values:
-            for s in seed_values:
-                try:
-                    subprocess.run([executable, "10000", v, T, s], check=True)
-                except subprocess.CalledProcessError:
-                    print(f"Error at excecuting the simulation with v={v}, T={T}, seed={s}.")
-                    sys.exit(1)    
+    
+    # Crea una lista con todas las combinaciones posibles de parámetros (27 simulaciones en total)
+    combinations = list(itertools.product(v_values, T_values, seed_values))
+    
+    # Obtiene el número de núcleos de tu procesador para lanzar esa cantidad de procesos a la vez
+    nucleos = os.cpu_count()
+    print(f"Ejecutando {len(combinations)} simulaciones en paralelo usando {nucleos} núcleos...")
+    
+    # Ejecuta el pool de hilos
+    try:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=nucleos) as executor:
+            # executor.map asigna cada combinación a un hilo disponible
+            list(executor.map(run_single_simulation, combinations))
+    except Exception:
+        print("Una o más simulaciones fallaron. Deteniendo ejecución.")
+        sys.exit(1)
+        
     print("\t### SIMULATION PROTOCOLE FINISHED SUCCESSFULLY ###")
-
 
 def plot():
     print(f"Excecution {plot_script}...")
