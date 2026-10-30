@@ -61,7 +61,7 @@ def linear_regression(x: list, y: list):
 files = list(Path("../data").glob("master_data_*.txt"))
 
 nu_values = ["0.01", "0.069", "0.1"]
-T_values = ["10000", "25000", "50000"]
+T_values = ["1000000", "2500000", "5000000"]
 seeds = ["42", "69", "911"]
 
 seed_per_T = {
@@ -121,16 +121,16 @@ for i, file in enumerate(files):
     if T == max_T and s == fixed_seed:
         index = nu_values.index(nu)
         
-        alpha_axes[index].plot(master_data[i][0][3::2], master_data[i][1][3::2], "-*", color='blue')
-        alpha_axes[index].set_xlabel('Time (t)')
-        alpha_axes[index].set_ylabel(r'Exponent $\alpha$')
+        alpha_axes[index].plot(master_data[i][0][3::100], master_data[i][1][3::100], "-*", color='blue')
+        alpha_axes[index].set_xlabel('Iteraciones (t)')
+        alpha_axes[index].set_ylabel(r'$\alpha$')
         alpha_axes[index].tick_params(top=True, right=True, direction='in')
         
         # Subplot title including nu and alpha statistics
         mu, sigma = alpha_stats.get(nu, (0.0, 0.0))
-        alpha_axes[index].set_title(f"\\nu = {nu} (T = {T})\n$\\alpha = {mu:.4f} \\pm {sigma:.4f}$")
+        alpha_axes[index].set_title(f"$\\nu = {nu}$ ($T = {T}$)\n$\\alpha = {mu:.4f} \\pm {sigma:.4f}$ ($\\alpha_{{teór}} = 2.5$)")
 
-fig_alpha.suptitle("Time Evolution of Exponent \\alpha (Max T)", fontsize=14)
+fig_alpha.suptitle("Evolución temporal de $\\alpha$ (Máx T)", fontsize=14)
 fig_alpha.tight_layout()
 
 # 5. FIGURE 2: SIZE DISTRIBUTION (LOG-LOG) 
@@ -179,18 +179,18 @@ for i, file in enumerate(files):
         x_full = np.linspace(min(x_axis) - 0.01*max(x_axis), max(x_axis) + 0.01*max(x_axis), 100)
         log_axes[index].plot(x_full, slope*x_full + intercept, color=colors[T])
 
-        log_axes[index].set_xlabel('Ln(S)')
-        log_axes[index].set_ylabel('Ln(Cumulative Frequency)')
+        log_axes[index].set_xlabel(r'$Ln(s)$')
+        log_axes[index].set_ylabel(r'$Ln(P[S \geq s])$')
         log_axes[index].tick_params(top=True, right=True, direction='in')
 
         # Subplot title including nu and alpha statistics
         mu, sigma = alpha_stats.get(nu, (0.0, 0.0))
-        log_axes[index].set_title(f"\\nu = {nu}\n$\\alpha = {mu:.4f} \\pm {sigma:.4f}$")
+        log_axes[index].set_title(f"$\\nu = {nu}$\n$\\alpha = {mu:.4f} \\pm {sigma:.4f} (\\alpha_{{teór}} = 2.5)$")
 
 for ax in log_axes:
     ax.legend()
 
-fig_log.suptitle("Size Distribution (Log-Log)", fontsize=14)
+fig_log.suptitle("Distribución (Log-Log)", fontsize=14)
 fig_log.tight_layout()
 
 # 6. SAVE AND DISPLAY RESULTS 

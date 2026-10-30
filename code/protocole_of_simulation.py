@@ -3,18 +3,13 @@ import sys
 
 # Names
 cpp_file = "simulation.cpp"
-<<<<<<< HEAD
-executable = "./simulation.x" 
-plot_script = "Grafica_2.py" 
-=======
 executable = "./simulation.x"
-plot_script = "Grafica_2.py"
+plot_script = "plotting.py"
 data_file = "master_data.txt"
->>>>>>> f0d626baec576b389a77d0644fbb91adcf4a0055
 
 # Different values for the simulation
 v_values = ["0.01", "0.069", "0.1"]
-T_values = ["10000", "25000", "50000"]
+T_values = ["1000000", "2500000", "5000000"]
 seed_values = ["42", "69", "911"]
 
 def compile():
