@@ -89,7 +89,7 @@ std::map<int, int> count_s(const std::vector<double>& group) {
 // Introduced the count_alpha_accumulated function as a double
 double count_alpha_accumulated(const std::map<int, int>& data) {
     if (data.size() < 2){return 0.0;} // Insufficient number of points to calculate the line
-    //HERE:else {
+    
     double accumulated = 0.0;
 
     // Variables for the linear regression
@@ -127,9 +127,7 @@ double count_alpha_accumulated(const std::map<int, int>& data) {
     
     double slope = numerator/denominator;
     
-    //HERE:return slope + 1.0;
     return 1.0 - slope;
-    //HERE:}
 }
 
 
@@ -167,7 +165,7 @@ int main(int argc, char** argv) {
     std::cout << "\t--- WARS AND TERRORISM SIMULATION ---\nStarting the simulation...\n";
     
     // Default values
-    int N = 1110; // Total force units // HERE: increase at least a mangitude order
+    int N = 1110; // Total force units // HERE: increase at least a magnitude order
     double v = 0.01; // Fragmentation probability
     int T = 110; // Total iterations - Change T, choose according to the process // HERE: increase T = 100000
     double seed = 42; // Seed of the random generator
@@ -205,6 +203,7 @@ int main(int argc, char** argv) {
     // Generate the guerrilla vector of size N and values 1
     int tt = 0;
     std::vector<double> guerrilla(N, 1);
+    std::vector<double> alphas;
     std::stringstream stream_name;
     stream_name << "../data/master_data_" << v << "_" << T << "_" << seed << ".txt";
     std::string filename = stream_name.str();
@@ -239,6 +238,10 @@ int main(int argc, char** argv) {
             }
             
             loading(T, tt);
+
+            double current_alpha = count_alpha_accumulated(count_s(guerrilla));        
+            alphas.push_back(current_alpha);
+            
             print_to_text(tt, count_s(guerrilla), filename);
         }
     } 
@@ -247,7 +250,23 @@ int main(int argc, char** argv) {
     std::chrono::duration<double> simulation_time = end - start;
 
     std::cout << "\n\nSimulation completed successfully in " << simulation_time.count() << " s. \nThe results are saved in the 'data' folder." << "\n";
-    std::cout << "The text file is structured as: ITERATION ALPHA [S_i, n_i]";
+    std::cout << "The text file is structured as: ITERATION ALPHA [S_i, n_i]\n\n";
+
+
+    int total_steps = alphas.size();
+    int M = total_steps * 0.10;
+
+    if (M > 0) {
+        double sum = 0.0;
+        for (int i = total_steps - M; i < total_steps; i++) {
+            sum += alphas[i];
+        }
+        double average = sum / M;
+
+        std::cout << "Average value of alpha (in the last 10%): " << average << std::endl;
+    } else {
+        std::cout << "The simulation was too short to calculate the 10%." << std::endl;
+    }
     
     return 0;
 }

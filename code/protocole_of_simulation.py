@@ -3,18 +3,23 @@ import sys
 
 # Names
 cpp_file = "simulation.cpp"
+<<<<<<< HEAD
 executable = "./simulation.x" 
 plot_script = "Grafica_2.py" 
+=======
+executable = "./simulation.x"
+plot_script = "Grafica_2.py"
+data_file = "master_data.txt"
+>>>>>>> f0d626baec576b389a77d0644fbb91adcf4a0055
 
 # Different values for the simulation
-v_values = ["0.01", "0.069", "0.10"]
+v_values = ["0.01", "0.069", "0.1"]
 T_values = ["10000", "25000", "50000"]
 seed_values = ["42", "69", "911"]
 
 def compile():
     print(f"Compilating {cpp_file}...")
     try:
-        # Comando: g++ simulacion.cpp -o simulacion
         subprocess.run(["g++", "-std=c++20", cpp_file, "-o", "simulation.x", "-O3"], check=True)
         print("Successfully compiled.\n")
     except subprocess.CalledProcessError:
@@ -30,7 +35,7 @@ def execute_simulations():
                     subprocess.run([executable, "10000", v, T, s], check=True)
                 except subprocess.CalledProcessError:
                     print(f"Error at excecuting the simulation with v={v}, T={T}, seed={s}.")
-                    sys.exit(1)
+                    sys.exit(1)    
     print("\t### SIMULATION PROTOCOLE FINISHED SUCCESSFULLY ###")
 
 
