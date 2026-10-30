@@ -121,3 +121,10 @@ $$\mu = \frac{1}{N} \sum_{i=1}^{N} \alpha_i, \qquad \sigma = \sqrt{\frac{1}{N - 
 
 ## Contact & Attribution
 Developed for computational physics research, complex systems analysis, and statistical modeling of guerrilla warfare dynamics.
+
+---
+
+## References
+
+1. N. Johnson, M. Spagat, J. Restrepo, J. Bohórquez, N. Suárez, E. Restrepo, and R. Zarama, *"From old wars to new wars and global terrorism,"* [arXiv:physics/0506213](https://arxiv.org/abs/physics/0506213), 2005.
+2. N. Johnson, et al., *"Universal scaling law in war and terrorism,"* [arXiv:physics/0605035](https://arxiv.org/abs/physics/0605035), 2006.
