@@ -3,7 +3,6 @@
 
 An automated computational framework designed to simulate force fragmentation and combination dynamics in guerrilla warfare and terrorism models. The pipeline executes C++ simulations, parses time-series state data, calculates the steady-state mean ($\mu$) and unbiased sample standard deviation ($\sigma$) of the power-law exponent ($\alpha$), and generates visualization figures using Python.
 
----
 
 ## Project Overview
 
